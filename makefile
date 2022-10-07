@@ -17,7 +17,7 @@ aes_htable_PRG.o: AES/aes_htable_PRG.c
 		gcc -c AES/aes_htable_PRG.c
 
 aes_shares_prg.o: AES/aes_shares_prg.c
-		gcc -c AES/aes_Shares_prg.c
+		gcc -c AES/aes_shares_prg.c
 
 bs_AES8_share.o: AES/bs_AES8_share.c
 		gcc -c AES/bs_AES8_share.c

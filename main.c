@@ -3,7 +3,7 @@
 #include "AES/aes.h"
 
 #include "PRESENT/present.h"
-#include "AES/aes_htable_PRG.h"
+#include "AES/aes_htable_prg.h"
 #include "Util/driver_functions.h"
 #include "Util/prg3.h"
 
