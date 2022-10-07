@@ -7,10 +7,13 @@ The proposed lookup table countermeasure is shown to be t-SNI secure against a t
 
 The target device for the code is FRDM-K64f from NXP and the microcontroller on the target architecture is MK64FN1M0VLL12.  The code makes use of the RNGA module built-in to the microcontroller for generating the input random seed/initial sharing of key/plaintext.
 
-To build the code, 
-1. run $make clean 
-2. $make (the executable will be created inside the Build folder) 
-3. Run the executable using $./Build/higherPRG.exe
+To build the code,
+
+If you are using a Windows System run $make clean_windows
+
+If you are using a Linux based System run $make clean_linux
+
+to run the code $make
 
 The code can either run on the target micro-controller or on a desktop. Set the value of TRNG(in Utils/common.h) to "zero (0)" to run on a desktop (where the random seed is obtained using AES-CTR PRG) or to "one(1)" to use device built-in RNGA. This code will include the appropriate header files depending on the choice of TRNG parameter. 
 
