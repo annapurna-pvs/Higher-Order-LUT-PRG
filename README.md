@@ -1,7 +1,7 @@
 # Higher-Order-LUT-PRG and Third-Order Lookup Table base Masking
 Higher-Order Lookup Table Masking in Essentially Constant Memory And A Faster Third-Order Masking of Lookup Tables
 
-The provided c code is to run the higher-order look-up table (LUT) scheme using PRG for various security orders. 
+The provided c code is to run the higher-order look-up table (LUT) scheme using PRG for various security orders. The c code also provides an efficient third-order look-up table (LUT) scheme.
 Our code supports the masked execution of AES and PRESENT block-ciphers using higher-order LUT where the required randomness for the implementation is generated using a robust PRG or from multiple PRGs. It also provides the masked bitsliced implementation of 8-bit AES and circuit-based implementation of PRESENT using the CRV scheme. 
 The proposed lookup table countermeasure is shown to be t-SNI secure against a t-th order DPA attack.
 
