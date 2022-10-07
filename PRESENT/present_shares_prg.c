@@ -335,3 +335,115 @@ double run_present_shares_crv(byte *in,byte*out,byte *key,int n,int nt)
     return time_crv;
 }
 
+/**********************third order**********/
+
+void run_present_shares_third(byte *in,byte*out,byte *key,int n,double *time1,int nt, int type)
+{
+
+    int ni=n*(n-1)/2;
+    byte stateshare[8][shares_N],keyshare[10][shares_N],state[8];
+    byte i=0, key_in[10];
+    int round;
+    unsigned int begin1, end1;
+    long sec,nsec;
+    double temp=0.0;
+
+
+    //TRNG initialisation
+   
+    for(i=0;i<10;i++)
+    key_in[i]=key[i];
+    #if TRNG==0
+    struct timespec begin, end;
+	#endif
+     #if TRNG==1
+       reset_systick();
+        begin1 = SysTick->VAL; // Obtains the start time
+      #endif // TRNG
+    #if TRNG==0
+        clock_gettime(CLOCK_REALTIME, &begin);
+        #endif // TRNG
+     /******************copying the key***************/
+    for(i=0;i<8;i++)
+    state[i]=in[i];
+
+    gen_t_forall_present_third(n,type); //Pre-processing table T1 for all rounds
+    #if TRNG==1
+    end1 = SysTick->VAL; // Obtains the stop time
+    time[0] = (double) (begin1-end1); // Calculates the time taken
+        #endif
+    #if TRNG==0
+        clock_gettime(CLOCK_REALTIME, &end);
+        sec = end.tv_sec - begin.tv_sec;
+        nsec = end.tv_nsec - begin.tv_nsec;
+        temp = sec + nsec*1e-9;
+
+        time1[0] = temp*UNIT;
+        #endif // TRNG
+   // printf("Done with pre-processing of tables\n");
+    #if TRNG==0
+        clock_gettime(CLOCK_REALTIME, &begin);
+        #endif // TRNG
+    for(int j=0;j<nt;j++)
+    {
+        for(i=0;i<10;i++)
+        key[i]=key_in[i];
+
+        for(i=0;i<8;i++)
+        {
+        share_rnga(state[i],stateshare[i],n);
+        }
+
+        for(i=0;i<10;i++)
+        {
+        share_rnga(key[i],keyshare[i],n);
+        }
+
+        #if TRNG==1
+        reset_systick();
+        begin1 = SysTick->VAL; // Obtains the start time
+        #endif // TRNG      
+  
+         for(round=0;round<31;round++)
+         {
+        addroundkey_present_share(stateshare,keyshare,n);
+        subbytestate_share_prg_present_third(stateshare,n,subbyte_htable_present_third,round);
+        permute_present_share(stateshare,n);
+
+        keyschedule_present(key,round);
+
+        for(i=0;i<10;i++)
+        {
+            share_rnga(key[i],keyshare[i],n); //Key share
+
+        }
+
+        }
+        addroundkey_present_share(stateshare,keyshare,n);
+
+
+        for(i=0;i<8;i++)
+        out[i]=decode(stateshare[i],n);
+
+        #if TRNG==1
+        end1 = SysTick->VAL; // Obtains the stop time
+        time1[j+1] = ((double) (begin1-end1)); // Calculates the time taken
+        #endif // TRNG
+
+        
+    }   
+    #if TRNG==0
+        clock_gettime(CLOCK_REALTIME, &end);
+        sec = end.tv_sec - begin.tv_sec;
+        nsec = end.tv_nsec - begin.tv_nsec;
+        temp = sec + nsec*1e-9;
+
+        time1[1] = (temp*UNIT);
+        time1[1] = time1[1]/nt;
+    #endif // TRNG
+
+}
+
+
+
+

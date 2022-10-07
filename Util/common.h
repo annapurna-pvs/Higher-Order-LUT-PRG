@@ -14,12 +14,20 @@ typedef unsigned char byte;
 
 /***********Input parameters to define********/
 
-#define shares_N 5 // #shares.
+#define shares_N 4 // #shares.
 #define VARIANT IPRG //// Either Normal (NPRG)/ Increasing (IPRG) variants
 
 /***********end of input parameters**********/
 
 #define UNIT 1000000 //Time unit (Milli seconds)
+
+#define AES 1
+#define PRESENT 2
+#define BITSLICE 3
+#define CRV_present 4
+#define AES_THIRD 5
+#define PRESENT_THIRD 6
+
 
 extern int cipher; // Cipher can be either AES/ PRESENT/ BITSLICE
 extern int type_PRG; // Either Robust/ multiple PRG

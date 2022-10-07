@@ -12,5 +12,9 @@ void subbytestate_share_prg_present(byte stateshare[8][shares_N],int n,void (*su
 byte get_mprg_lr_present(int index,int n, unsigned int val);
 
 
+void subbyte_htable_present_third(byte *a,int n,int count);
+void gen_t_forall_present_third(int n, int type);
+void subbytestate_share_prg_present_third(byte stateshare[8][shares_N],int n,void (*subbyte_share_call)(byte *,int,int),int round);
+
 
 

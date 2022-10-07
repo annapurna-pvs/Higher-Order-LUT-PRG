@@ -288,7 +288,7 @@ void bs_sbox_share8n(byte n)
     //middle non-linear
 
     AND8n(T[2] , Y[12] , Y[15], n);
-    AND8n(T[3] , Y[3] , Y[6], n);
+    AND8n(T[3] , Y[3] , Y[6], n)    ;
     AND8n(T[5] , Y[4] , X[7] , n);
     AND8n(T[7] , Y[13] , Y[16], n);
     AND8n(T[8] , Y[5] , Y[1] , n);
@@ -765,4 +765,3 @@ double run_aes_share_bitslice8(byte in[16],byte out[16],byte key[16],byte n,int 
   return time_bs; //The time required for bitslice execution
 
 }
-

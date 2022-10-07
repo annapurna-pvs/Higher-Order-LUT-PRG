@@ -1,15 +1,12 @@
 #include <stdio.h>
 
 #include "AES/aes.h"
+
 #include "PRESENT/present.h"
 #include "AES/aes_htable_PRG.h"
 #include "Util/driver_functions.h"
 #include "Util/prg3.h"
 
-#define AES 1
-#define PRESENT 2
-#define BITSLICE 3
-#define CRV_present 4
 
 
 
@@ -22,21 +19,22 @@ int main()
 
     int nt = 10; //Number of times to repeat experiments
     int shares = shares_N; // #Input shares. Set the parameter in common.h.
-    int cipher = AES; //Cipher can be AES or PRESENT or BITSLICE or CRV_present
+    int cipher =AES_THIRD; //Cipher can be AES or PRESENT or BITSLICE or CRV_present or AES_THIRD or PRESENT_THIRD
+    //for AES_THIRD or PRESENT_THIRD or BITSLICE no need to set scheme or type_PRG
     int scheme = VARIANT; //Set the parameter in common.h file. Type of LUT construction. normal--> NPRG  Increasing shares--> IPRG
-    int type_PRG = MPRG; //Type of PRG to generate randoms, either robust-->RPRG or multiple-->MPRG
+    int type_PRG = RPRG; //Type of PRG to generate randoms, either robust-->RPRG or multiple-->MPRG
 
     double time[2]={0,0};// To hold offline and online execution clock cycle count
-
+     double time1[11]={0,0,0,0,0,0,0,0,0,0,0};
     int i,k;
 
     printf("**********************************************\n");
     printf("Input choices\n");
-    printf("Cipher: %d (1:AES 2:PRESENT 3:Bitslice 4:PRESENT_CRV)\n",cipher);
+    printf("Cipher: %d (1:AES 2:PRESENT 3:Bitslice 4:PRESENT_CRV 5:AES_THIRD 6:PRESENT_THIRD)\n",cipher);
     printf("#shares: %d, Variant:%d  (1:Normal 0:Increasing shares) and PRG type: %d (2:robust 3:multiple PRG)\n",shares,scheme,type_PRG);
     printf("**********************************************\n");
 
-    if(cipher==AES)
+    if(cipher==AES||cipher==AES_THIRD)
     {
         //****************Test vectors********************
 		byte keyex[16]={0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
@@ -70,10 +68,18 @@ int main()
 
         //*******Un masked AES***
         run_aes(in1,out1,key1,1);
+       
+        if(cipher==AES_THIRD)
+        {
+            
+            run_aes_shares_third(in2,out2,key2,shares,scheme,nt,time1);
+
+        }
 
         //*********Masked AES with randomness generated from PRG*******
+        if(cipher==AES)
         run_aes_shares_prg(in2,out2,key2,shares,scheme,type_PRG,time,nt);
-
+       
         if(compare_output(out1,out2,16))
         {
             printf("Successful execution of LUT-based AES\n");
@@ -93,7 +99,12 @@ int main()
             }
 
             #if TRNG==0
-            printf("#Milli seconds: Off-line: %f and Online: %f\n ",time[0],time[1]);
+            {
+                if(cipher==AES)
+                printf("#Milli seconds: Off-line: %f and Online: %f\n ",time[0],time[1]);
+                else if(cipher==AES_THIRD)
+                printf("#Milli seconds: Off-line: %f and Online: %f\n ",time1[0],time1[1]);
+            }
             #else
             printf("#Clock_cycles: Off-line: %f and Online: %f\n ",time[0],time[1]);
             #endif
@@ -104,7 +115,7 @@ int main()
 
    }
 
-    if(cipher==PRESENT)
+    if(cipher==PRESENT||cipher==PRESENT_THIRD)
     {
             /*********Test Vectors*********/
         byte keyex[] ={0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
@@ -136,14 +147,23 @@ int main()
         }
 
         present(in1,out1,key1);
+        if(cipher==PRESENT)
         run_present_shares_prg(in2,out2,key2,shares,time,nt);
+        if(cipher==PRESENT_THIRD)
+        run_present_shares_third(in2,out2,key2,shares,time1,nt,scheme);
 
         if(compare_output(out1,out2,8))
         {
             printf("Successful execution of LUT-based PRESENT\n");
 
             #if TRNG==0
-            printf("#Milli seconds: Off-line: %f and Online: %f\n ",time[0],time[1]);
+            {
+                if(cipher==PRESENT_THIRD)
+                 printf("#Milli seconds: Off-line: %f and Online: %f\n ",time1[0],time1[1]);
+                if(cipher==PRESENT)
+                printf("#Milli seconds: Off-line: %f and Online: %f\n ",time[0],time[1]);
+            }
+           
             #else
             printf("#Clock_cycles: Off-line: %f and Online: %f\n ",time[0],time[1]);
             #endif
@@ -185,17 +205,20 @@ int main()
         }
 
         //*******Un masked AES***
-        run_aes(in1,out1,key1,1);
+        //run_aes(in1,out1,key1,1);
 
         //*********8-bit bitsliced AES*******
-        time_bs=run_aes_share_bitslice8(in2,out2,key2,shares,nt);
-
+       //time_bs=run_aes_share_bitslice8(in2,out2,key2,shares,nt);
+       double time_b[1]={0};
+       run_bitslice(in1,out1,key1,nt);
+		run_bitslice_shares(in2,out2,key2,nt,time_b);
+      
         if(compare_output(out1,out2,16))
         {
             printf("Successful execution of bitsliced AES\n");
 
             #if TRNG==0
-            printf("#Milli seconds: Online: %f ",time_bs);
+            printf("#Milli seconds: Online: %f ",time_b[0]); //printf("#Milli seconds: Online: %f ",time_bs);
             #else
             printf("#Clock_cycles: Online: %f ",time_bs);
             #endif

@@ -12,6 +12,11 @@ byte x_shares[160*(shares_N-1)]; //Shares of x used as part of pre-processing.  
 byte T[160*TSIZE]; //Size of pre-computed tables for 10*16=160 S-box calls for AES-128, 496*TSIZE for PRESENT.
 
 
+byte y_shares[160*(shares_N - 2)];
+
+byte Y3[40960]; // Y3 array, with 256*160=40960 size
+byte T2[160*TSIZE];
+
 //************Functions for Normal variant using robust PRG *******************
 
 
@@ -365,5 +370,137 @@ void subbytestate_share_prg(byte stateshare[16][shares_N],int n,void (*subbyte_s
     subbyte_share_call(stateshare[i],n,ind);
 
   }
+
+}
+
+/***************************specific to third order**************************/
+void refresh_mask_sni(byte y_cw[4])
+{
+   byte t[4];
+   gen_rand(t,4);
+   y_cw[0]=(y_cw[0]^t[0])^t[3];
+   y_cw[1]=(y_cw[1]^t[1])^t[0];
+   y_cw[2]=(y_cw[2]^t[2])^t[1];
+   y_cw[3]=(y_cw[3]^t[3])^t[2];
+ 
+}
+void subbyte_htable_third(byte y[shares_N], int n, int ind, int choice)
+{
+
+	byte x4;
+	
+	unsigned int t2 = ind*TSIZE;
+	x4 = y[n - 1];
+    
+	y[0] = T2[t2 + x4]; //y4
+	
+	
+		unsigned int t1 = ind*(shares_N - 2);
+		for (int i = 1; i < shares_N - 1; i++) //n=4, thus y0 and y1
+		{
+		y[i] = y_shares[t1 + i - 1]; //y1 y2
+        }
+	    y[n - 1] = Y3[t2 + x4];
+	
+	
+	
+   //refresh_mask_byte(n-1,y);
+   //refresh_mask_byte_LR(y);
+   //fullrefresh_sni(y);
+  
+   refresh_mask_sni(y);
+   
+    
+}
+void subbytestate_share_third(byte stateshare[16][shares_N], int n, void(*subbyte_share_call)(byte *, int, int, int), int round, int choice)
+{
+	unsigned int i, j;
+	unsigned int t, ind;
+  
+	for (i = 0; i < 16; i++)
+	{
+		ind = 16*round + i;
+		t = ind*(shares_N - 1);
+		byte temp = 0;
+		for (j = 0; j < n - 1; j++)
+			temp = temp ^ stateshare[i][j] ^ x_shares[t + j];
+    
+	
+		stateshare[i][n - 1] = stateshare[i][n - 1] ^ temp;
+	
+		subbyte_share_call(stateshare[i], n, ind, choice); 
+	
+	}
+
+}
+void htable_third(int n, int count, int choice)
+{
+	unsigned int j, i, t, t1, temp, temp1, k = 0;
+	byte Tp[TSIZE], v[1], d, b;
+    
+	temp = count*TSIZE;
+    
+	t = count*(shares_N - 1);
+	t1 = count*(shares_N - 2);
+	temp1 = x_shares[t];
+	for (j = 0; j < TSIZE; j++)
+	{
+		Tp[j] = sbox[j^temp1] ^ y_shares[t1]; //S[x+a]+y1
+	}
+	gen_rand(v, 1);
+    
+	d = (x_shares[t + 1] ^ v[0]) ^ x_shares[t + 2];
+    
+	for (j = 0; j < TSIZE; j++)
+	{
+		b = j ^ d;
+		T2[temp + b] = (Tp[v[0] ^ j] ^ Y3[temp + b]) ^ y_shares[t1 + 1];  
+	}
+    
+}
+void gen_t_forall_third(int n, int choice)
+{
+	unsigned int i, j, temp1, temp2, temp3;
+	byte a[shares_N - 1],  c[TSIZE], common;
+
+	
+	for (i = 0; i < 160; i++)
+	{
+		
+		temp1 = i*(shares_N - 1);
+
+		for (j = 0; j < (n - 1); j++)
+		{
+			x_shares[temp1 + j] = a[j]; //need for both the choices
+     
+		}
+       
+			byte b[shares_N - 2];
+			
+			gen_rand(b, n - 2);
+		    temp2 = i*(shares_N - 2);
+		    for (j = 0; j < (n - 1); j++)
+		    {
+				y_shares[temp2 + j] = b[j]; 
+            
+	     	}
+		    gen_rand(c, TSIZE);
+			temp3 = i*TSIZE;
+			for (j = 0; j < TSIZE; j++)
+			{
+				Y3[temp3 + j] = c[j]; 
+            
+			}
+			htable_third(n, i, choice);
+	/*	
+	if(i==0)
+    {
+        for(int j=0;j<256;j++)
+        printf("%u ",T2[j]);
+    printf("\n");
+    }*/
+		
+        
+	}
 
 }
