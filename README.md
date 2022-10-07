@@ -1,5 +1,4 @@
 # Higher-Order-LUT-PRG
-Hello
 Higher-Order Lookup Table Masking in Essentially Constant Memory
 
 The provided c code is to run the higher-order look-up table (LUT) scheme using PRG for various security orders. 
