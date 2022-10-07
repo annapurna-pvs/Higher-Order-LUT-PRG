@@ -1,77 +1,58 @@
-# Set project directory one level above of Makefile directory. $(CURDIR) is a GNU make variable containing the path to the current working directory
-PROJDIR := $(realpath $(CURDIR))
-SOURCEDIR := $(PROJDIR)/
-BUILDDIR := $(PROJDIR)/Build
+all: output
+		./output
 
-# Name of the final executable
-TARGET = higherPRG.exe
+output: bs_AES32_share.o bs_w32_AES.o main.o common.o prg3.o share.o present_crv.o present_htable_PRG.o present_shares_prg.o present.o aes_htable_PRG.o aes_rp.o aes_shares_prg.o aes.o
+		gcc bs_AES32_share.o bs_w32_AES.o main.o common.o prg3.o share.o present_crv.o present_htable_PRG.o present_shares_prg.o present.o aes_htable_PRG.o aes_rp.o aes_shares_prg.o aes.o -o output
 
-# Create the list of directories
-SOURCEDIRS = . AES PRESENT Util
+main.o: main.c
+		gcc -c main.c
 
-# Generate the GCC includes parameters by adding -I before each source folder
-INCLUDES = $(foreach dir, $(SOURCEDIRS), $(addprefix -I, $(dir)))
+aes.o: AES/aes.c
+		gcc -c AES/aes.c
 
-# Add this list to VPATH, the place make will look for the source files
-VPATH = $(SOURCEDIRS)
+aes_rp.o: AES/aes_rp.c
+		gcc -c AES/aes_rp.c
 
-# Create a list of *.c sources in SOURCEDIRS
-SOURCES = $(foreach dir,$(SOURCEDIRS),$(wildcard $(dir)/*.c))
+aes_htable_PRG.o: AES/aes_htable_PRG.c
+		gcc -c AES/aes_htable_PRG.c
 
-# Define objects for all sources
-OBJS := $(SOURCES:.c=.o)
-BLD_OBJS := $(foreach file,$(SOURCES),Build/$(file))
-ALLOBJS := $(BLD_OBJS:.c=.o)
+aes_shares_prg.o: AES/aes_shares_prg.c
+		gcc -c AES/aes_Shares_prg.c
 
-# Define dependencies files for all objects
-# DEPS = $(OBJS:.o=.d)
+bs_AES8_share.o: AES/bs_AES8_share.c
+		gcc -c AES/bs_AES8_share.c
 
-# Name the compiler
-CC = gcc
+bs_w_AES8.o: AES/bs_w_AES8.c
+		gcc -c AES/bs_w_AES8.c
 
-# Tools
-ifeq ($(OS),Windows_NT)
-	MKDIR = -mkdir
-	RM = del /F /Q
-	SEP = /
-	ERRIGNORE = 2>/dev/null
-else
-	MKDIR = mkdir -p
-	RM = rm -rf
-	SEP = /
-	ERRIGNORE = 2>/dev/null
-endif
+bs_AES32_share.o: AES/bs_AES32_share.c
+		gcc -c AES/bs_AES32_share.c
 
-# Remove space after separator
-PSEP = $(strip $(SEP))
+bs_w32_AES.o: AES/bs_w32_AES.c
+		gcc -c AES/bs_w32_AES.c
 
-# Define the function that will generate each rule
-define generateObjs
-$(1)/%.o: %.c
-	@echo Building $$@ $(1)
-	$(CC) -c $$(INCLUDES) -o Build/$$@ $$< 
-#	$(CC) -c $$(INCLUDES) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
-endef
 
-.PHONY: all clean directories 
+common.o: Util/common.c
+		gcc -c Util/common.c
 
-all: directories $(TARGET)
+share.o: Util/share.c
+		gcc -c Util/share.c
 
-$(TARGET): $(OBJS)
-	echo Linking $@
-	$(CC) $(ALLOBJS) -o Build/$(TARGET)
+prg3.o: Util/prg3.c
+		gcc -c Util/prg3.c
 
-# Include dependencies
-# -include $(DEPS)
+present_crv.o: PRESENT/present_crv.c
+		gcc -c PRESENT/present_crv.c
 
-# Generate rules
-$(foreach targetdir, $(SOURCEDIRS), $(eval $(call generateObjs, $(targetdir))))
+present_htable_PRG.o: PRESENT/present_htable_PRG.c
+		gcc -c PRESENT/present_htable_PRG.c		
 
-directories:
-	-@$(MKDIR) $(BUILDDIR) $(BUILDDIR)/AES $(BUILDDIR)/PRESENT $(BUILDDIR)/Util
+present_shares_prg.o: PRESENT/present_shares_prg.c
+		gcc -c PRESENT/present_shares_prg.c
 
-# Remove all objects, dependencies and executable files generated during the build
-clean:
-	@$(RM) Build
-	@echo Cleaning done ! 
-
+present.o: PRESENT/present.c
+		gcc -c PRESENT/present.c
+clean_windows:
+		del /F /Q  output.exe *.o
+clean_linux:
+		rm *.o output
